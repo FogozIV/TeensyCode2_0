@@ -1,0 +1,3 @@
+[submodule "lib/ardyno"]
+	path = lib/ardyno
+	url = git@github.com:FogozIV/ardyno.git
