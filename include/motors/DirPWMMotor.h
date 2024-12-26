@@ -11,8 +11,10 @@
 class DirPWMMotor: public AbstractMotor {
     uint8_t pwmPin;
     uint8_t dirPin;
+    bool inversed;
+    double currentValue = 0;
 public:
-    DirPWMMotor(uint8_t pwmPin, uint8_t dirPin);
+    DirPWMMotor(uint8_t pwmPin, uint8_t dirPin, bool inversed=false);
 
     void setPWM(double pwm) override;
 

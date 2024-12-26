@@ -100,3 +100,40 @@ Matrix<data_type> &Matrix<data_type>::operator+=(const data_type &number) {
         getVectorEditable().at(i) += number;
     return *this;
 }
+
+
+template<typename data_type>
+Matrix<data_type> Matrix<data_type>::getYRot(double angle) {
+    double cos_a = cos(angle);
+    double sin_a = sin(angle);
+    return Matrix({cos_a, 0, sin_a, 0, 0, 1, 0, 0, -sin_a, 0, cos_a, 0, 0, 0, 0, 1});
+}
+
+template<typename data_type>
+Matrix<data_type> Matrix<data_type>::getZRot(double angle) {
+    double cos_a = cos(angle);
+    double sin_a = sin(angle);
+    return Matrix({cos_a, -sin_a, 0, 0, sin_a, cos_a, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1});
+}
+
+template<typename data_type>
+Matrix<data_type>::Matrix(std::vector<data_type> data) {
+    this->data = std::make_shared<std::vector<data_type>>(data);
+}
+
+template<typename data_type>
+Matrix<data_type> Matrix<data_type>::getXRot(double angle) {
+    double cos_a = cos(angle);
+    double sin_a = sin(angle);
+    return Matrix({1, 0, 0, 0, cos_a, -sin_a, 0, 0, 0, 0, sin_a, cos_a, 0, 0, 0, 1});
+}
+
+template<typename data_type>
+Matrix<data_type> &Matrix<data_type>::operator+=(const Matrix<data_type> &other) {
+    if(other.rows == rows && other.cols == cols){
+        for(int i = 0; i < getVector().size();i++){
+            getVectorEditable().at(i) += other.getVector().at(i);
+        }
+    }
+    return *this;
+}

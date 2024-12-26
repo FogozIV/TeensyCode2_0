@@ -24,7 +24,15 @@ public:
 
     Matrix(Matrix<data_type>&& copy);
 
+    Matrix(std::vector<data_type> data);
+
     static Matrix<data_type> getEye(uint16_t size);
+
+    static Matrix<data_type> getXRot(double angle);
+
+    static Matrix<data_type> getYRot(double angle);
+
+    static Matrix<data_type> getZRot(double angle);
 
     const std::vector<data_type>& getVector() const;
 
@@ -42,16 +50,6 @@ public:
 
     const data_type& getData(uint16_t row, uint16_t col) const;
 };
-
-template<typename data_type>
-Matrix<data_type> &Matrix<data_type>::operator+=(const Matrix<data_type> &other) {
-    if(other.rows == rows && other.cols == cols){
-        for(int i = 0; i < getVector().size();i++){
-            getVectorEditable().at(i) += other.getVector().at(i);
-        }
-    }
-    return *this;
-}
 
 
 #include "Matrix.tpp"

@@ -7,6 +7,9 @@
 #include "utils/Matrix.h"
 #include "vector"
 #include "motors/DirPWMMotor.h"
+#include "encoders/QuadEncoderImpl.h"
+#include "robot/HomogeneousMatrixRobotImpl.h"
+AbstractRobot* robot;
 void setup() {
 // write your initialization code here
 }
