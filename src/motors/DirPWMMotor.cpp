@@ -22,6 +22,9 @@ double DirPWMMotor::getCurrentValue() const {
 }
 
 DirPWMMotor::DirPWMMotor(uint8_t pwmPin, uint8_t dirPin, bool inversed) : pwmPin(pwmPin), dirPin(dirPin), inversed(inversed) {
+    if (pwmPin == 255 || dirPin == 255) {
+        return;
+    }
 #ifndef NATIVE
     analogWriteResolution(12);
     pinMode(pwmPin, OUTPUT);

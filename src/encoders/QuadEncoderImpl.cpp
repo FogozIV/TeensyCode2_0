@@ -6,6 +6,10 @@
 
 QuadEncoderImpl::QuadEncoderImpl(uint8_t pinA, uint8_t pinB, uint8_t channel){
     quadEncoder = new QuadEncoder(channel, pinA, pinB);
+    quadEncoder->write(0);
+    quadEncoder->setInitConfig();
+    quadEncoder->init();
+    previous_count = 0;
 }
 
 int32_t QuadEncoderImpl::getEncoderCount() const {

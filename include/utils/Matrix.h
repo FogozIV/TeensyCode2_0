@@ -10,7 +10,7 @@
 #include "vector"
 
 template<typename data_type>
-class Matrix {
+class Matrix : public Printable{
 protected:
     uint16_t rows;
     uint16_t cols;
@@ -24,7 +24,9 @@ public:
 
     Matrix(Matrix<data_type>&& copy);
 
-    Matrix(std::vector<data_type> data);
+    Matrix(Matrix<data_type>& copy);
+
+    Matrix(uint16_t rows, uint16_t cols, std::vector<data_type> data);
 
     static Matrix<data_type> getEye(uint16_t size);
 
@@ -33,6 +35,8 @@ public:
     static Matrix<data_type> getYRot(double angle);
 
     static Matrix<data_type> getZRot(double angle);
+
+    static Matrix<data_type> getTranslation(double x, double y=0.0f, double z=0.0f);
 
     const std::vector<data_type>& getVector() const;
 
@@ -48,8 +52,15 @@ public:
 
     Matrix<data_type>& operator+=(const Matrix<data_type>& other);
 
+    Matrix<data_type>& operator*=(const Matrix<data_type>& other);
+
+    Matrix<data_type>& operator*=(const data_type& number);
+
     const data_type& getData(uint16_t row, uint16_t col) const;
+
+    size_t printTo(Print &p) const override;
 };
+
 
 
 #include "Matrix.tpp"

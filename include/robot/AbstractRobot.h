@@ -11,27 +11,36 @@ public:
     /**
      * @return whether the robot is moving or not
      */
-    bool isMoving() const;
+    virtual bool isMoving() const = 0;
 
     /**
      * @return the position matrix
      */
-    Matrix<double> getPosition() const;
+    virtual Matrix<double> getPosition() const = 0;
 
+    /**
+     * @return the total translational distance
+     */
+    virtual const double getTranslationalPosition() const = 0;
     /**
      * @return the speed in the translation
      */
-    double getTranslationalSpeed() const;
+    virtual const double getTranslationalSpeed() const = 0;
 
     /**
      * @return the rotation along the z axis (which is following the robot)
      */
-    const double getZAxisRotation() const;
+    virtual const double getZAxisRotation() const = 0;
 
     /**
      * @return the speed along the rotation axis
      */
-    double getRotationalSpeed() const;
+    virtual const double getRotationalSpeed() const = 0;
+
+    /**
+     * Function called all the time to update the robot pos and control
+     */
+    virtual void update()= 0;
 
 };
 
