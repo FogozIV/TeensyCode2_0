@@ -4,7 +4,6 @@
 
 #ifndef TEENSYCODE2_0_ABSTRACTROBOT_H
 #define TEENSYCODE2_0_ABSTRACTROBOT_H
-#include "./utils/Matrix.h"
 
 class AbstractRobot {
 public:
@@ -16,7 +15,7 @@ public:
     /**
      * @return the position matrix
      */
-    virtual Matrix<double> getPosition() const = 0;
+    virtual Position getPosition() const = 0;
 
     /**
      * @return the total translational distance
@@ -41,6 +40,23 @@ public:
      * Function called all the time to update the robot pos and control
      */
     virtual void update()= 0;
+
+    /**
+     * Function to call a the beginning of a calibration
+     */
+    virtual void begin_calibration();
+
+    /**
+     * Function to call at the end of a calibration
+     * @param angle the angle that has been moved
+     */
+    virtual void end_calibration_angle(double angle);
+
+    /**
+     * Function to call at the end of a calibration
+     * @param distance the distance moved
+     */
+    virtual void end_calibration_straight(double distance);
 
 };
 

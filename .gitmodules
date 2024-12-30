@@ -1,3 +1,6 @@
 [submodule "lib/ardyno"]
 	path = lib/ardyno
 	url = git@github.com:FogozIV/ardyno.git
+[submodule "lib/CommandParser"]
+	path = lib/CommandParser
+	url = git@github.com:FogozIV/Arduino-CommandParser.git
