@@ -12,6 +12,12 @@ std::shared_ptr<AsyncClient> client;
 #include "CommandParser.h"
 std::shared_ptr<CommandParser> commandParser;
 bool connect = false;
+//33 34 35 36
+#define MOT_1_PWM 33
+#define MOT_1_DIR 34
+#define MOT_2_DIR 35
+#define MOT_2_PWM 36
+
 
 #define SEND_DATA(client, data, len) client->write(data, len, 0x01)
 
@@ -32,12 +38,13 @@ void setup() {
         robot->end_calibration_angle(args[0].asDouble());
         return "Success";
     });
+    commandParser->registerCommand("find_motor_calibration","", [](std::vector<CommandParser::Argument> args) {
+        robot->find_motor_calibration();
+        return "Success";
+    });
 
     qindesign::network::Ethernet.onLinkState([](bool state){
         if(state == true) {
-            Serial.println("Link detected");
-            Serial.println(qindesign::network::Ethernet.linkState());
-            Serial.println(qindesign::network::Ethernet.localIP());
             connect = true;
         }
     });
@@ -46,8 +53,8 @@ void setup() {
     robot = std::make_shared<ThetaAngleRobotImpl>(
         std::make_unique<QuadEncoderImpl>(0,1,1),
         std::make_unique<QuadEncoderImpl>(2,3,2),
-        std::make_unique<DirPWMMotor>(-1,-1),
-        std::make_unique<DirPWMMotor>(-1,-1),
+        std::make_unique<DirPWMMotor>(MOT_1_PWM,MOT_1_DIR),
+        std::make_unique<DirPWMMotor>(MOT_2_PWM,MOT_2_DIR),
         50,20);
     utils::network::initialiseNetwork();
     if (!qindesign::network::Ethernet.waitForLink(6000)) {
@@ -55,7 +62,7 @@ void setup() {
     }
     client = std::make_shared<AsyncClient>();
     client->onPacket([](void*, AsyncClient*, struct pbuf *pb) {
-        std::string str(std::string(static_cast<const char *>(pb->payload), static_cast<const char *>(pb->payload)+pb->len));
+        std::string str(static_cast<const char *>(pb->payload), static_cast<const char *>(pb->payload)+pb->len);
         std::string result;
         commandParser->processCommand(str, result);
         result += "\n";
@@ -68,7 +75,6 @@ void setup() {
         connect = false;
     });
     client->onDisconnect([](void* arg, AsyncClient* client) {
-       Serial.println("Disconnected");
         connect = true;
     });
     client->onError([](void* arg, AsyncClient* client, err_t error) {

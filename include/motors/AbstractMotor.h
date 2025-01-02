@@ -21,6 +21,17 @@ public:
      * @return the current signed pwm sent to the motor
      */
     virtual double getCurrentValue() const = 0;
+
+    /**
+     * This function allow to set if the motor behavior is reversed or not
+     */
+    virtual void setReversed(bool) = 0;
+
+    /**
+     *
+     * @return Whether the motor behavior is reversed or not
+     */
+    virtual bool isReversed() const = 0;
 };
 
 

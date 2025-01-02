@@ -21,6 +21,10 @@ public:
     double getMaxValue() const override;
 
     double getCurrentValue() const override;
+
+    void setReversed(bool) override;
+
+    bool isReversed() const override;
 };
 
 

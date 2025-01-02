@@ -18,17 +18,19 @@
 #define SELECTED_CHIP BUILTIN_SDCARD
 #endif
 class ThetaAngleRobotImpl: public AbstractRobot {
-    std::unique_ptr<AbstractEncoder> leftEncoder;
-    std::unique_ptr<AbstractEncoder> rightEncoder;
-    std::unique_ptr<AbstractMotor> leftMotor;
-    std::unique_ptr<AbstractMotor> rightMotor;
-    std::unique_ptr<SpeedEstimator> distanceEstimator;
-    std::unique_ptr<SpeedEstimator> angleEstimator;
+    std::shared_ptr<AbstractEncoder> leftEncoder;
+    std::shared_ptr<AbstractEncoder> rightEncoder;
+    std::shared_ptr<AbstractMotor> leftMotor;
+    std::shared_ptr<AbstractMotor> rightMotor;
+    std::shared_ptr<SpeedEstimator> distanceEstimator;
+    std::shared_ptr<SpeedEstimator> angleEstimator;
     Position pos = {0,0,0};
     double left_wheel_diam = 1;
     double right_wheel_diam = 1;
     double track_mm = 100;
 
+    bool left_wheel_motor_reversed = false;
+    bool right_wheel_motor_reversed = false;
     struct {
         double left_position = 0.0f;
         double right_position = 0.0f;
@@ -40,10 +42,10 @@ protected:
     void update_position();
     void update_controller();
 public:
-    ThetaAngleRobotImpl(std::unique_ptr<AbstractEncoder> &&leftEncoder,
-                               std::unique_ptr<AbstractEncoder> &&rightEncoder,
-                               std::unique_ptr<AbstractMotor> &&leftMotor,
-                               std::unique_ptr<AbstractMotor> &&rightMotor,
+    ThetaAngleRobotImpl(std::shared_ptr<AbstractEncoder> leftEncoder,
+                               std::shared_ptr<AbstractEncoder> rightEncoder,
+                               std::shared_ptr<AbstractMotor> leftMotor,
+                               std::shared_ptr<AbstractMotor> rightMotor,
                                double bandwidth_distance,
                                double bandwidth_angle);
 
@@ -68,6 +70,8 @@ public:
     void save();
 
     Position getPosition() const override;
+
+    void find_motor_calibration() override;
 };
 
 

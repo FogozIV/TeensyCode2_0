@@ -7,17 +7,18 @@
 #include "robot/ThetaAngleRobotImpl.h"
 
 #include <memory>
+#include <utility>
 
-ThetaAngleRobotImpl::ThetaAngleRobotImpl(std::unique_ptr<AbstractEncoder> &&leftEncoder,
-                                         std::unique_ptr<AbstractEncoder> &&rightEncoder,
-                                         std::unique_ptr<AbstractMotor> &&leftMotor,
-                                         std::unique_ptr<AbstractMotor> &&rightMotor,
+ThetaAngleRobotImpl::ThetaAngleRobotImpl(std::shared_ptr<AbstractEncoder> leftEncoder,
+                                         std::shared_ptr<AbstractEncoder> rightEncoder,
+                                         std::shared_ptr<AbstractMotor> leftMotor,
+                                         std::shared_ptr<AbstractMotor> rightMotor,
                                          double bandwidth_distance,
                                          double bandwidth_angle)
         : leftEncoder(std::move(leftEncoder)), rightEncoder(std::move(rightEncoder)), leftMotor(std::move(leftMotor)), rightMotor(std::move(rightMotor)) {
-    this->distanceEstimator = std::make_unique<SpeedEstimator>(bandwidth_distance);
-    this->angleEstimator = std::make_unique<SpeedEstimator>(bandwidth_angle);
 
+    this->distanceEstimator = std::make_shared<SpeedEstimator>(bandwidth_distance);
+    this->angleEstimator = std::make_shared<SpeedEstimator>(bandwidth_angle);
     sd_present = SD.begin(SELECTED_CHIP);
     if(sd_present){
         if (File dataFile = SD.open("encoder.json", FILE_READ)) {
@@ -31,11 +32,21 @@ ThetaAngleRobotImpl::ThetaAngleRobotImpl(std::unique_ptr<AbstractEncoder> &&left
             if (jsonData["track_mm"].is<double>()) {
                 track_mm = jsonData["track_mm"].as<double>();
             }
+            if (jsonData["left_wheel_motor_reversed"].is<bool>()) {
+                left_wheel_motor_reversed = jsonData["left_wheel_motor_reversed"].as<bool>();
+            }
+            if (jsonData["right_wheel_motor_reversed"].is<bool>()) {
+                right_wheel_motor_reversed = jsonData["right_wheel_motor_reversed"].as<bool>();
+            }
+            this->leftMotor->setReversed(left_wheel_motor_reversed);
+            this->rightMotor->setReversed(right_wheel_motor_reversed);
+            if (jsonData["reverse_motors"].is<bool>() && jsonData["reverse_motors"].as<bool>()) {
+                auto a = this->leftMotor;
+                this->leftMotor = this->rightMotor;
+                this->rightMotor = a;
+            }
         }
     }
-
-
-
 }
 
 bool ThetaAngleRobotImpl::isMoving() const {
@@ -44,6 +55,82 @@ bool ThetaAngleRobotImpl::isMoving() const {
 
 Position ThetaAngleRobotImpl::getPosition() const {
     return pos;
+}
+
+void ThetaAngleRobotImpl::find_motor_calibration() {
+    leftMotor->setPWM(0);
+    rightMotor->setPWM(0);
+    delay(1000);
+    angleEstimator->reset();
+    distanceEstimator->reset();
+    //We go back in a previsible state
+    if (jsonData["reverse_motors"].is<bool>() && jsonData["reverse_motors"].as<bool>()) {
+        auto a = leftMotor;
+        leftMotor = rightMotor;
+        rightMotor = a;
+    }
+    pos = {0,0,0};
+
+    leftMotor->setReversed(false);
+    rightMotor->setReversed(false);
+
+    leftMotor->setPWM(400);
+    delay(2000);
+    leftMotor->setPWM(0);
+
+    update_position();
+
+
+    if (distanceEstimator->getRealDistance() > 0) {
+        jsonData["left_wheel_motor_reversed"] = false;
+        if (angleEstimator->getRealDistance() < 0) {
+            jsonData["reverse_motors"] = false;
+        }else {
+            jsonData["reverse_motors"] = true;
+        }
+    }else {
+        jsonData["left_wheel_motor_reversed"] = true;
+        //Case where the wheel went backward
+        if (angleEstimator->getRealDistance() > 0) {
+            jsonData["reverse_motors"] = true;
+        }else {
+            jsonData["reverse_motors"] = false;
+        }
+    }
+    angleEstimator->reset();
+    distanceEstimator->reset();
+
+    rightMotor->setPWM(400);
+    delay(2000);
+    rightMotor->setPWM(0);
+    update_position();
+
+    if (distanceEstimator->getRealDistance() > 0) {
+        jsonData["right_wheel_motor_reversed"] = false;
+    }else {
+        jsonData["right_wheel_motor_reversed"] = true;
+    }
+
+    leftMotor->setReversed(jsonData["left_wheel_motor_reversed"].as<bool>());
+    rightMotor->setReversed(jsonData["right_wheel_motor_reversed"].as<bool>());
+
+    if (jsonData["reverse_motors"].is<bool>() && jsonData["reverse_motors"].as<bool>()) {
+        auto a = leftMotor;
+        leftMotor = rightMotor;
+        rightMotor = a;
+    }
+    pos = {0,0,0};
+    angleEstimator->reset();
+    distanceEstimator->reset();
+
+
+    leftMotor->setPWM(-400);
+    rightMotor->setPWM(400);
+    delay(2000);
+    leftMotor->setPWM(0);
+    rightMotor->setPWM(0);
+
+    save();
 }
 
 const double ThetaAngleRobotImpl::getTranslationalSpeed() const {
@@ -70,6 +157,9 @@ void ThetaAngleRobotImpl::update() {
     update_position();
     update_controller();
 }
+
+
+
 
 void ThetaAngleRobotImpl::begin_calibration() {
     calibration_data.left_position = this->leftEncoder->getEncoderCount();

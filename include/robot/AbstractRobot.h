@@ -7,6 +7,8 @@
 
 class AbstractRobot {
 public:
+    virtual ~AbstractRobot() = default;
+
     /**
      * @return whether the robot is moving or not
      */
@@ -42,9 +44,14 @@ public:
     virtual void update()= 0;
 
     /**
-     * Function to call a the beginning of a calibration
+     * Function to call at the beginning of a calibration
      */
     virtual void begin_calibration();
+
+    /**
+     * Function to call to calibrate the motor
+     */
+    virtual void find_motor_calibration();
 
     /**
      * Function to call at the end of a calibration
