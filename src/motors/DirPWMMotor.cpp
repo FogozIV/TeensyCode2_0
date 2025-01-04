@@ -10,7 +10,7 @@
 
 void DirPWMMotor::setPWM(double pwm) {
     digitalWriteFast(dirPin, (inversed ? -1 : 1) * pwm > 0);
-    analogWrite(pwmPin, (uint16_t)abs(pwm));
+    analogWrite(pwmPin, static_cast<uint16_t>(abs(constrain(pwm, -getMaxValue(), getMaxValue()))));
 }
 
 double DirPWMMotor::getMaxValue() const {

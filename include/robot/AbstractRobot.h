@@ -4,6 +4,7 @@
 
 #ifndef TEENSYCODE2_0_ABSTRACTROBOT_H
 #define TEENSYCODE2_0_ABSTRACTROBOT_H
+#include "utils/Position.h"
 
 class AbstractRobot {
 public:
@@ -46,24 +47,39 @@ public:
     /**
      * Function to call at the beginning of a calibration
      */
-    virtual void begin_calibration();
+    virtual void begin_calibration() = 0;
 
     /**
      * Function to call to calibrate the motor
      */
-    virtual void find_motor_calibration();
+    virtual void find_motor_calibration() = 0;
 
     /**
      * Function to call at the end of a calibration
      * @param angle the angle that has been moved
      */
-    virtual void end_calibration_angle(double angle);
+    virtual void end_calibration_angle(double angle) = 0;
 
     /**
      * Function to call at the end of a calibration
      * @param distance the distance moved
      */
-    virtual void end_calibration_straight(double distance);
+    virtual void end_calibration_straight(double distance) = 0;
+
+    /**
+     *
+     * @param position the new_position for everything
+     */
+    virtual void reset_robot_to(const Position& position) = 0;
+
+
+    /**
+     *
+     * @param position the target position
+     */
+    virtual void setTargetPos(const Position& position) = 0;
+
+    virtual Print& getLogger() = 0;
 
 };
 

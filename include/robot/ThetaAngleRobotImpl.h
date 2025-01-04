@@ -6,6 +6,8 @@
 #define TEENSYCODE2_0_HOMOGENEOUSMATRIXROBOTIMPL_H
 
 #include <memory>
+#include <FS.h>
+#include <SD.h>
 
 #include "utils/Position.h"
 #include "AbstractRobot.h"
@@ -13,6 +15,7 @@
 #include "motors/AbstractMotor.h"
 #include "encoders/AbstractEncoder.h"
 #include "ArduinoJson.h"
+#include "controllers/AbstractController.h"
 
 #ifndef SELECTED_CHIP
 #define SELECTED_CHIP BUILTIN_SDCARD
@@ -24,10 +27,13 @@ class ThetaAngleRobotImpl: public AbstractRobot {
     std::shared_ptr<AbstractMotor> rightMotor;
     std::shared_ptr<SpeedEstimator> distanceEstimator;
     std::shared_ptr<SpeedEstimator> angleEstimator;
+    std::shared_ptr<AbstractController> controller;
     Position pos = {0,0,0};
+    Position target_pos = {0,0,0};
     double left_wheel_diam = 1;
     double right_wheel_diam = 1;
     double track_mm = 100;
+    File data_file;
 
     bool left_wheel_motor_reversed = false;
     bool right_wheel_motor_reversed = false;
@@ -46,6 +52,7 @@ public:
                                std::shared_ptr<AbstractEncoder> rightEncoder,
                                std::shared_ptr<AbstractMotor> leftMotor,
                                std::shared_ptr<AbstractMotor> rightMotor,
+                               std::shared_ptr<AbstractController> controller,
                                double bandwidth_distance,
                                double bandwidth_angle);
 
@@ -72,6 +79,16 @@ public:
     Position getPosition() const override;
 
     void find_motor_calibration() override;
+
+    void reset_robot_to(const Position &position) override;
+
+    void setTargetPos(const Position &position) override;
+
+    AbstractMotor& getLeftMotor();
+
+    AbstractMotor& getRightMotor();
+
+    Print& getLogger() override;
 };
 
 

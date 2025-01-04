@@ -2,25 +2,27 @@
 // Created by fogoz on 26/12/2024.
 //
 
-#include <FS.h>
-#include <SD.h>
 #include "robot/ThetaAngleRobotImpl.h"
 
 #include <memory>
 #include <utility>
-
+#include <Entropy.h>
 ThetaAngleRobotImpl::ThetaAngleRobotImpl(std::shared_ptr<AbstractEncoder> leftEncoder,
                                          std::shared_ptr<AbstractEncoder> rightEncoder,
                                          std::shared_ptr<AbstractMotor> leftMotor,
                                          std::shared_ptr<AbstractMotor> rightMotor,
+                                         std::shared_ptr<AbstractController> controller,
                                          double bandwidth_distance,
                                          double bandwidth_angle)
-        : leftEncoder(std::move(leftEncoder)), rightEncoder(std::move(rightEncoder)), leftMotor(std::move(leftMotor)), rightMotor(std::move(rightMotor)) {
+        : leftEncoder(std::move(leftEncoder)), rightEncoder(std::move(rightEncoder)), leftMotor(std::move(leftMotor)), rightMotor(std::move(rightMotor)), controller(std::move(controller)){
 
     this->distanceEstimator = std::make_shared<SpeedEstimator>(bandwidth_distance);
     this->angleEstimator = std::make_shared<SpeedEstimator>(bandwidth_angle);
     sd_present = SD.begin(SELECTED_CHIP);
     if(sd_present){
+        Entropy.Initialize();
+
+        this->data_file = SD.open((std::string("data") + std::to_string(Entropy.random(0,255))).data(), FILE_WRITE_BEGIN);
         if (File dataFile = SD.open("encoder.json", FILE_READ)) {
             deserializeJson(jsonData, dataFile);
             if (jsonData["left_wheel_diam"].is<double>()) {
@@ -74,7 +76,7 @@ void ThetaAngleRobotImpl::find_motor_calibration() {
     leftMotor->setReversed(false);
     rightMotor->setReversed(false);
 
-    leftMotor->setPWM(400);
+    leftMotor->setPWM(leftMotor->getMaxValue() * 0.1);
     delay(2000);
     leftMotor->setPWM(0);
 
@@ -100,7 +102,7 @@ void ThetaAngleRobotImpl::find_motor_calibration() {
     angleEstimator->reset();
     distanceEstimator->reset();
 
-    rightMotor->setPWM(400);
+    rightMotor->setPWM(rightMotor->getMaxValue() * 0.1);
     delay(2000);
     rightMotor->setPWM(0);
     update_position();
@@ -124,8 +126,8 @@ void ThetaAngleRobotImpl::find_motor_calibration() {
     distanceEstimator->reset();
 
 
-    leftMotor->setPWM(-400);
-    rightMotor->setPWM(400);
+    leftMotor->setPWM(-leftMotor->getMaxValue() * 0.1);
+    rightMotor->setPWM(rightMotor->getMaxValue() * 0.1);
     delay(2000);
     leftMotor->setPWM(0);
     rightMotor->setPWM(0);
@@ -150,7 +152,11 @@ const double ThetaAngleRobotImpl::getTranslationalPosition() const {
 }
 
 void ThetaAngleRobotImpl::update_controller() {
-
+    controller->applyController(*this, target_pos);
+    if(sd_present){
+        this->data_file.printf("%f, %f\n", getTranslationalPosition(), getZAxisRotation());
+        this->data_file.flush();
+    }
 }
 
 void ThetaAngleRobotImpl::update() {
@@ -233,4 +239,29 @@ void ThetaAngleRobotImpl::update_position() {
         Serial.println(r);
         pos+= {r * (-sin(pos.getAngle()) + sin(pos.getAngle() + angle)), r * (cos(pos.getAngle()) - cos(pos.getAngle() + angle)), angle};
     }
+}
+
+void ThetaAngleRobotImpl::reset_robot_to(const Position &position) {
+    this->pos = position;
+    this->target_pos = position;
+    this->controller->reset_to(*this, this->pos);
+}
+
+void ThetaAngleRobotImpl::setTargetPos(const Position &position) {
+    this->target_pos = position;
+}
+
+Print& ThetaAngleRobotImpl::getLogger(){
+    if(sd_present){
+        return this->data_file;
+    }
+    return Serial;
+}
+
+AbstractMotor &ThetaAngleRobotImpl::getRightMotor() {
+    return *rightMotor;
+}
+
+AbstractMotor &ThetaAngleRobotImpl::getLeftMotor() {
+    return *leftMotor;
 }
