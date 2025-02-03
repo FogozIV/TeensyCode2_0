@@ -251,11 +251,11 @@ void ThetaAngleRobotImpl::setTargetPos(const Position &position) {
     this->target_pos = position;
 }
 
-Print& ThetaAngleRobotImpl::getLogger(){
+std::shared_ptr<Print> ThetaAngleRobotImpl::getLogger(){
     if(sd_present){
-        return this->data_file;
+        return std::make_shared<File>(data_file);
     }
-    return Serial;
+    return std::make_shared<usb_serial_class>(Serial);
 }
 
 AbstractMotor &ThetaAngleRobotImpl::getRightMotor() {

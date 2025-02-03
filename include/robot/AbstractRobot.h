@@ -79,7 +79,7 @@ public:
      */
     virtual void setTargetPos(const Position& position) = 0;
 
-    virtual Print& getLogger() = 0;
+    virtual std::shared_ptr<Print> getLogger() = 0;
 
 };
 

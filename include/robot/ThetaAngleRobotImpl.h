@@ -88,7 +88,7 @@ public:
 
     AbstractMotor& getRightMotor();
 
-    Print& getLogger() override;
+    std::shared_ptr<Print> getLogger() override;
 };
 
 

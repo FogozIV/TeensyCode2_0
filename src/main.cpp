@@ -14,6 +14,7 @@ std::shared_ptr<AsyncClient> client;
 #include "utils/PID.h"
 #include "utils/QuadRamp.h"
 #include "controllers/PIDController.h"
+#include <TeensyThreads.h>
 
 std::shared_ptr<CommandParser> commandParser;
 bool connect = false;
@@ -26,6 +27,20 @@ bool connect = false;
 
 
 #define SEND_DATA(client, data, len) client->write(data, len, 0x01)
+using namespace std::chrono;
+void handle(){
+    auto data_point = std::chrono::system_clock::now();
+    Serial.println("thread created");
+    while(true){
+        if(std::chrono::system_clock::now() - data_point < 5ms){
+            continue;
+        }
+        Serial.println("Updating");
+        data_point = std::chrono::system_clock::now();
+        robot->update();
+    }
+}
+
 
 void setup() {
     commandParser = std::make_shared<CommandParser>();
@@ -60,7 +75,8 @@ void setup() {
     });
     Serial.begin(115200);
     Serial.println("Hello World");
-
+    std::shared_ptr<PID> pidDistance = std::make_shared<PID>(200,100,0.3, 400);
+    std::shared_ptr<PID> pidAngle= std::make_shared<PID>(8000,4000,0.1, 2000);
 
     robot = std::make_shared<ThetaAngleRobotImpl>(
         std::make_unique<QuadEncoderImpl>(0,1,1),
@@ -68,10 +84,10 @@ void setup() {
         std::make_unique<DirPWMMotor>(MOT_1_PWM,MOT_1_DIR),
         std::make_unique<DirPWMMotor>(MOT_2_PWM,MOT_2_DIR),
         std::make_unique<PIDController>(
-                std::make_shared<PID>(50,20,30),
-                std::make_shared<PID>(200,40,10),
+                pidDistance,
+                pidAngle,
                 std::make_shared<QuadRamp>(600,600),
-                std::make_shared<QuadRamp>(M_PI_2, M_PI_4)),
+                std::make_shared<QuadRamp>(M_PI_2, M_PI_2)),
         50,20);
     utils::network::initialiseNetwork();
     if (!qindesign::network::Ethernet.waitForLink(6000)) {
@@ -100,8 +116,13 @@ void setup() {
     });
     robot->reset_robot_to({0,0,0});
     robot->setTargetPos({500,0,0});
+    std::thread t(handle);
+    threads.setDefaultStackSize(10000);
+    t.detach();
+    threads.setDefaultTimeSlice(10000);
     //client->connect(IPAddress(192,168,1,68), 8089);
 // write your initialization code here
+
 }
 uint8_t link_tentative =0;
 bool first = true;
@@ -118,7 +139,6 @@ void loop() {
             link_tentative++;
         }
     }
-    robot->update();
     //Serial.println(robot->getPosition());
     /*Serial.printf("Total distance: %f, total angle: %f, speed distance : %f, speed angle : %f\n",
                   robot->getTranslationalPosition(), robot->getZAxisRotation(), robot->getTranslationalSpeed(),

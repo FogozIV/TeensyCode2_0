@@ -28,7 +28,7 @@ public:
         double absStopDistance = pow(current_speed, 2) / (2 * maxAcc);
         double stopDistance = absStopDistance * SIGN(current_speed);
         double target_speed = 0.0f;
-        if(target_distance - stopDistance*secRatio >= 0){
+        if(abs(target_distance) - absStopDistance*secRatio >= 0){
             target_speed = SIGN(target_distance) * maxSpeed;
         }
         auto current_time = std::chrono::system_clock::now();
