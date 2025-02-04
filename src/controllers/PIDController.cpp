@@ -15,13 +15,19 @@ PIDController::PIDController(std::shared_ptr<PID> distancePID, std::shared_ptr<P
 void PIDController::applyController(AbstractRobot &robot, const Position &target_pos) {
     Position current_pos = robot.getPosition();
     Position delta_pos = target_pos - current_pos;
+    std::shared_ptr<Print> logger = robot.getLogger();
     double angle = WARP_ANGLE(delta_pos.getDistanceAngle() - robot.getPosition().getAngle());
     double sign = (angle < -90 || angle > 90) ? -1 : 1;
-    distance_target = quadRampDistance->compute(sign*delta_pos.getDistance());
-    double distance_result = distancePID->compute(distance_target);
-    angle_target = quadRampAngle->compute(angle);
-    double angle_result = anglePID->compute(angle_target);
-    std::shared_ptr<Print> logger = robot.getLogger();
+    distance_target += quadRampDistance->compute(sign*delta_pos.getDistance());
+    double distance_result = distancePID->compute(distance_target - robot.getTranslationalPosition());
+    logger->println("Distance ");
+    logger->flush();
+    logger->printf("%lf; %lf; %lf\n", distance_target, robot.getTranslationalPosition(), distance_result);
+    angle_target += quadRampAngle->compute(angle);
+    double angle_result = anglePID->compute(angle_target - robot.getZAxisRotation());
+    logger->println("Angle ");
+    logger->printf("%lf; %lf; %lf\n", angle_target, robot.getZAxisRotation(), angle_result);
+
     /*
     logger->print("Current ");
     logger->println(current_pos);
