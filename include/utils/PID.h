@@ -13,6 +13,7 @@ class PID {
     double last_error = 0.0f;
     double iTerm = 0.0f;
     double anti_windup;
+    double max_value;
     std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<double>> previousTime = std::chrono::system_clock::now();
   public:
     /**
@@ -22,7 +23,7 @@ class PID {
      * @param kd the derivative term
      * @param anti_windup the saturation value
      */
-    PID(double kp=0, double ki=0, double kd=0, double anti_windup=2000);
+    PID(double kp=0, double ki=0, double kd=0, double anti_windup=1000, double max_value=2000);
 
     /**
      *
@@ -36,7 +37,7 @@ class PID {
      */
     void reset();
 
-    void set(double kp=NAN, double ki=NAN, double kd=NAN, double anti_windup=NAN);
+    void set(double kp=NAN, double ki=NAN, double kd=NAN, double anti_windup=NAN, double max_value=NAN);
 
     double getKp() const;
 
@@ -45,6 +46,8 @@ class PID {
     double getKd() const;
 
     double getAntiWindup() const;
+
+    double getMaxValue() const;
 };
 
 namespace ArduinoJson {

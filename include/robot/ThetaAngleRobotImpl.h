@@ -89,6 +89,8 @@ public:
     AbstractMotor& getRightMotor();
 
     std::shared_ptr<Print> getLogger() override;
+
+    void applyMotor(std::vector<double> pwms) override;
 };
 
 

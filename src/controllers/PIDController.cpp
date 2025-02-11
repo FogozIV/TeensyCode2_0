@@ -16,18 +16,22 @@ void PIDController::applyController(AbstractRobot &robot, const Position &target
     Position current_pos = robot.getPosition();
     Position delta_pos = target_pos - current_pos;
     std::shared_ptr<Print> logger = robot.getLogger();
-    double angle = WARP_ANGLE(delta_pos.getDistanceAngle() - robot.getPosition().getAngle());
-    double sign = (angle < -90 || angle > 90) ? -1 : 1;
-    distance_target += quadRampDistance->compute(sign*delta_pos.getDistance());
+    double angle = WARP_ANGLE(delta_pos.getDistanceAngle() - current_pos.getAngle());
+    double sign = (angle < -M_PI_2 || angle > M_PI_2) ? -1 : 1;
+    distance_target += quadRampDistance->compute(sign*delta_pos.getDistance(), distance_target - robot.getTranslationalPosition());
     double distance_result = distancePID->compute(distance_target - robot.getTranslationalPosition());
     logger->println("Distance ");
     logger->flush();
     logger->printf("%lf; %lf; %lf\n", distance_target, robot.getTranslationalPosition(), distance_result);
-    angle_target += quadRampAngle->compute(angle);
+    angle += sign < 0 ? M_PI : 0;
+    angle = WARP_ANGLE(angle);
+    angle_target += quadRampAngle->compute(angle, angle_target-robot.getZAxisRotation());
     double angle_result = anglePID->compute(angle_target - robot.getZAxisRotation());
     logger->println("Angle ");
-    logger->printf("%lf; %lf; %lf\n", angle_target, robot.getZAxisRotation(), angle_result);
-
+    logger->printf("%lf; %lf; ", delta_pos.getDistanceAngle(), current_pos.getAngle());
+    logger->printf("%lf; %lf; %lf; %lf\n", angle, angle_target, robot.getZAxisRotation(), angle_result);
+    logger->println(current_pos);
+    logger->println(delta_pos);
     /*
     logger->print("Current ");
     logger->println(current_pos);
@@ -48,12 +52,13 @@ void PIDController::applyController(AbstractRobot &robot, const Position &target
     //logger->printf("%f; %f; %f; %f\n", distance_result+angle_result, distance_result-angle_result, robot.getTranslationalPosition(), robot.getZAxisRotation());
     //This goes out of the loop just because we want to be able to work with any type of robot check what can be done for that
     Serial.println("Here");
-    ThetaAngleRobotImpl* robotImpl = (ThetaAngleRobotImpl*)(&robot);
+    robot.applyMotor({distance_result+angle_result, distance_result-angle_result});
+    /*ThetaAngleRobotImpl* robotImpl = (ThetaAngleRobotImpl*)(&robot);
     robotImpl->getRightMotor().setPWM(distance_result+angle_result);
-    robotImpl->getLeftMotor().setPWM(distance_result-angle_result);
+    robotImpl->getLeftMotor().setPWM(distance_result-angle_result);*/
 }
 
-void PIDController::reset_to(const AbstractRobot& robot, const Position &position) {
+void PIDController::reset_to(AbstractRobot& robot, const Position &position) {
     distance_target = robot.getTranslationalPosition();
     angle_target = robot.getZAxisRotation();
     anglePID->reset();

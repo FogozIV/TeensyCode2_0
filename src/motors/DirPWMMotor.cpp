@@ -14,7 +14,7 @@ void DirPWMMotor::setPWM(double pwm) {
 }
 
 double DirPWMMotor::getMaxValue() const {
-    return pow(2,12)-1;
+    return 4095.0;
 }
 
 double DirPWMMotor::getCurrentValue() const {

@@ -24,19 +24,21 @@ public:
         this->secRatio = sec_ratio;
         this->previous_time = std::chrono::system_clock::now();
     }
-    double compute(double target_distance){
+    double compute(double target_distance, double dist=0.0f){
         double absStopDistance = pow(current_speed, 2) / (2 * maxAcc);
-        double stopDistance = absStopDistance * SIGN(current_speed);
+        //double stopDistance = absStopDistance * SIGN(current_speed);
         double target_speed = 0.0f;
-        if(abs(target_distance) - absStopDistance*secRatio >= 0){
+        if(abs(target_distance-dist) - absStopDistance*secRatio > 0){
             target_speed = SIGN(target_distance) * maxSpeed;
         }
         auto current_time = std::chrono::system_clock::now();
         std::chrono::duration<double> dt = current_time - previous_time;
         if(target_speed > current_speed){
             current_speed += maxAcc * dt.count();
+            current_speed = min(current_speed, target_speed);
         }else if(target_speed < current_speed){
             current_speed -= maxAcc * dt.count();
+            current_speed = max(current_speed, target_speed);
         }
         current_speed = constrain(current_speed, -maxSpeed, maxSpeed);
         previous_time = current_time;

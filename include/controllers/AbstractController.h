@@ -19,7 +19,9 @@ public:
      */
     virtual void applyController(AbstractRobot& robot, const Position& target_pos) = 0;
 
-    virtual void reset_to(const AbstractRobot& robot, const Position& position) = 0;
+    virtual void reset_to(AbstractRobot& robot, const Position& position) = 0;
+
+    virtual void setTargetPos(AbstractRobot& robot, const Position& position){};
 };
 
 

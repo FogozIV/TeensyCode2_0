@@ -17,7 +17,7 @@ double PID::compute(double error) {
 }
 
 
-PID::PID(double kp, double ki, double kd, double anti_windup) : kp(kp), ki(ki), kd(kd), anti_windup(anti_windup) {
+PID::PID(double kp, double ki, double kd, double anti_windup, double max_value) : kp(kp), ki(ki), kd(kd), anti_windup(anti_windup), max_value(max_value) {
 }
 
 void PID::reset() {
@@ -26,11 +26,12 @@ void PID::reset() {
     previousTime = std::chrono::system_clock::now();
 }
 
-void PID::set(double kp, double ki, double kd, double anti_windup) {
+void PID::set(double kp, double ki, double kd, double anti_windup, double max_value) {
     this->kp = isnan(kp) ? this->kp : kp;
     this->ki = isnan(ki) ? this->ki : ki;
     this->kd = isnan(kd) ? this->kd : kd;
     this->anti_windup = isnan(anti_windup) ? this->anti_windup : anti_windup;
+    this->max_value = isnan(max_value) ? this->max_value : max_value;
 
 }
 
@@ -48,4 +49,8 @@ double PID::getKd() const {
 
 double PID::getAntiWindup() const {
     return anti_windup;
+}
+
+double PID::getMaxValue() const {
+    return max_value;
 }

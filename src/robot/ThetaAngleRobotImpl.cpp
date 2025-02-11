@@ -248,6 +248,7 @@ void ThetaAngleRobotImpl::reset_robot_to(const Position &position) {
 }
 
 void ThetaAngleRobotImpl::setTargetPos(const Position &position) {
+    this->controller->setTargetPos(*this, position);
     this->target_pos = position;
 }
 
@@ -264,4 +265,9 @@ AbstractMotor &ThetaAngleRobotImpl::getRightMotor() {
 
 AbstractMotor &ThetaAngleRobotImpl::getLeftMotor() {
     return *leftMotor;
+}
+
+void ThetaAngleRobotImpl::applyMotor(std::vector<double> pwms) {
+    getLeftMotor().setPWM(pwms[0]);
+    getRightMotor().setPWM(pwms[1]);
 }

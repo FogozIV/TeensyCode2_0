@@ -26,7 +26,7 @@ public:
 
     void applyController(AbstractRobot &robot, const Position &target_pos) override;
 
-    void reset_to(const AbstractRobot& robot, const Position &position) override;
+    void reset_to(AbstractRobot& robot, const Position &position) override;
 };
 
 

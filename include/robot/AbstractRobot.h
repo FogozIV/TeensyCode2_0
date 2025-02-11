@@ -5,6 +5,7 @@
 #ifndef TEENSYCODE2_0_ABSTRACTROBOT_H
 #define TEENSYCODE2_0_ABSTRACTROBOT_H
 #include "utils/Position.h"
+#include "vector"
 
 class AbstractRobot {
 public:
@@ -80,6 +81,8 @@ public:
     virtual void setTargetPos(const Position& position) = 0;
 
     virtual std::shared_ptr<Print> getLogger() = 0;
+
+    virtual void applyMotor(std::vector<double> pwms) = 0;
 
 };
 

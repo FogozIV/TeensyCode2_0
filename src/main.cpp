@@ -41,8 +41,11 @@ void handle(){
     }
 }
 
+std::shared_ptr<std::thread> t;
 
 void setup() {
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
     commandParser = std::make_shared<CommandParser>();
     commandParser->registerCommand("help", "", [](std::vector<CommandParser::Argument> args) {
         return "There is no help available yet";
@@ -75,8 +78,8 @@ void setup() {
     });
     Serial.begin(115200);
     Serial.println("Hello World");
-    std::shared_ptr<PID> pidDistance = std::make_shared<PID>(200,100,0.3, 400);
-    std::shared_ptr<PID> pidAngle= std::make_shared<PID>(8000,4000,0.1, 2000);
+    std::shared_ptr<PID> pidDistance = std::make_shared<PID>(20,80,0.3, 400, 1000);
+    std::shared_ptr<PID> pidAngle= std::make_shared<PID>(800,500,0.1, 700, 1000);
 
     robot = std::make_shared<ThetaAngleRobotImpl>(
         std::make_unique<QuadEncoderImpl>(0,1,1),
@@ -116,9 +119,9 @@ void setup() {
     });
     robot->reset_robot_to({0,0,0});
     robot->setTargetPos({500,0,0});
-    std::thread t(handle);
     threads.setDefaultStackSize(10000);
-    t.detach();
+    t = std::make_shared<std::thread>(handle);
+    t->detach();
     threads.setDefaultTimeSlice(10000);
     //client->connect(IPAddress(192,168,1,68), 8089);
 // write your initialization code here
@@ -139,7 +142,6 @@ void loop() {
             link_tentative++;
         }
     }
-    //Serial.println(robot->getPosition());
     /*Serial.printf("Total distance: %f, total angle: %f, speed distance : %f, speed angle : %f\n",
                   robot->getTranslationalPosition(), robot->getZAxisRotation(), robot->getTranslationalSpeed(),
                   robot->getRotationalSpeed());
