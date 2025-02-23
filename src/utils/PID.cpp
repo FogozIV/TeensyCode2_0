@@ -6,7 +6,7 @@
 #include "Arduino.h"
 
 double PID::compute(double error) {
-    auto time = std::chrono::system_clock::now();
+    auto time = std::chrono::steady_clock::now();
     std::chrono::duration<double> dt = time - previousTime;
     previousTime = time;
     iTerm += ki * error * dt.count();
@@ -23,7 +23,7 @@ PID::PID(double kp, double ki, double kd, double anti_windup, double max_value) 
 void PID::reset() {
     last_error = 0;
     iTerm = 0;
-    previousTime = std::chrono::system_clock::now();
+    previousTime = std::chrono::steady_clock::now();
 }
 
 void PID::set(double kp, double ki, double kd, double anti_windup, double max_value) {

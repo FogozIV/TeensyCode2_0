@@ -7,7 +7,7 @@
 #ifndef QUADRAMP_H
 #define QUADRAMP_H
 
-#define SIGN(x) (x < 0 ? -1 : 1)
+#define SIGN(x) ((x > 0) - (x < 0))
 class QuadRamp{
     double current_speed = 0.0f;
 

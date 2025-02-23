@@ -14,7 +14,7 @@ class PID {
     double iTerm = 0.0f;
     double anti_windup;
     double max_value;
-    std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<double>> previousTime = std::chrono::system_clock::now();
+    std::chrono::time_point<std::chrono::steady_clock, std::chrono::duration<double>> previousTime = std::chrono::steady_clock::now();
   public:
     /**
      * A PID class

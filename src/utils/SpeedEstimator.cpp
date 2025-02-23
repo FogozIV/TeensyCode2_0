@@ -18,7 +18,7 @@ void SpeedEstimator::reset() {
     distance_estimation = 0.0f;
     speed = 0.0f;
     real_distance = 0.0f;
-    previous_time = std::chrono::system_clock::now();
+    previous_time = std::chrono::steady_clock::now();
 }
 
 void SpeedEstimator::update(double distance, double deltaT) {
@@ -47,7 +47,7 @@ double SpeedEstimator::getRealDistance() const {
 }
 
 void SpeedEstimator::update(double distance) {
-    auto new_micro = std::chrono::system_clock::now();
+    auto new_micro = std::chrono::steady_clock::now();
     update(distance, std::chrono::duration<double>(new_micro-previous_time).count());
     previous_time = new_micro;
 }

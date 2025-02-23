@@ -14,6 +14,7 @@ std::shared_ptr<AsyncClient> client;
 #include "utils/PID.h"
 #include "utils/QuadRamp.h"
 #include "controllers/PIDController.h"
+#include "controllers/PIDControllerDeterministicRamp.h"
 #include <TeensyThreads.h>
 
 std::shared_ptr<CommandParser> commandParser;
@@ -29,14 +30,14 @@ bool connect = false;
 #define SEND_DATA(client, data, len) client->write(data, len, 0x01)
 using namespace std::chrono;
 void handle(){
-    auto data_point = std::chrono::system_clock::now();
+    auto data_point = std::chrono::steady_clock::now();
     Serial.println("thread created");
     while(true){
-        if(std::chrono::system_clock::now() - data_point < 5ms){
+        if(std::chrono::steady_clock::now() - data_point < 5ms){
             continue;
         }
         Serial.println("Updating");
-        data_point = std::chrono::system_clock::now();
+        data_point = std::chrono::steady_clock::now();
         robot->update();
     }
 }
@@ -78,9 +79,9 @@ void setup() {
     });
     Serial.begin(115200);
     Serial.println("Hello World");
-    std::shared_ptr<PID> pidDistance = std::make_shared<PID>(20,80,0.3, 400, 1000);
-    std::shared_ptr<PID> pidAngle= std::make_shared<PID>(800,500,0.1, 700, 1000);
-
+    std::shared_ptr<PID> pidDistance = std::make_shared<PID>(20,8000,0.3, 400, 1000);
+    std::shared_ptr<PID> pidAngle= std::make_shared<PID>(800,5000,0.1, 400, 1000);
+    /*
     robot = std::make_shared<ThetaAngleRobotImpl>(
         std::make_unique<QuadEncoderImpl>(0,1,1),
         std::make_unique<QuadEncoderImpl>(2,3,2),
@@ -91,7 +92,18 @@ void setup() {
                 pidAngle,
                 std::make_shared<QuadRamp>(600,600),
                 std::make_shared<QuadRamp>(M_PI_2, M_PI_2)),
-        50,20);
+        50,20);*/
+    robot = std::make_shared<ThetaAngleRobotImpl>(
+            std::make_unique<QuadEncoderImpl>(0,1,1),
+            std::make_unique<QuadEncoderImpl>(2,3,2),
+            std::make_unique<DirPWMMotor>(MOT_1_PWM,MOT_1_DIR),
+            std::make_unique<DirPWMMotor>(MOT_2_PWM,MOT_2_DIR),
+            std::make_unique<PIDControllerDeterministicRamp>(
+                    pidDistance,
+                    pidAngle,
+                    std::make_shared<Ramp>(600,600, 600)),
+            50,20);
+
     utils::network::initialiseNetwork();
     if (!qindesign::network::Ethernet.waitForLink(6000)) {
         Serial.println("No link detected");

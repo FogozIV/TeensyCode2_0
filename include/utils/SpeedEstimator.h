@@ -15,7 +15,7 @@ class SpeedEstimator {
     double speed = 0.0f;
     double distance_estimation = 0.0f;
     double real_distance = 0.0f;
-    std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<double>> previous_time;
+    std::chrono::time_point<std::chrono::steady_clock, std::chrono::duration<double>> previous_time;
 
 public:
     SpeedEstimator(double bandwidth);

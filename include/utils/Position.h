@@ -76,5 +76,9 @@ public:
     double getAngleDeg() const {
         return getAngle() * 180 / M_PI;
     }
+
+    bool operator!=(const Position& position) const{
+        return x==position.x && y == position.y && theta == position.theta;
+    }
 };
 #endif //POSITION_H

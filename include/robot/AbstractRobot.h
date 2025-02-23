@@ -80,7 +80,7 @@ public:
      */
     virtual void setTargetPos(const Position& position) = 0;
 
-    virtual std::shared_ptr<Print> getLogger() = 0;
+    virtual std::shared_ptr<Print> getLogger() const = 0;
 
     virtual void applyMotor(std::vector<double> pwms) = 0;
 

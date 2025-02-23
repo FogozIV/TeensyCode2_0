@@ -252,7 +252,7 @@ void ThetaAngleRobotImpl::setTargetPos(const Position &position) {
     this->target_pos = position;
 }
 
-std::shared_ptr<Print> ThetaAngleRobotImpl::getLogger(){
+std::shared_ptr<Print> ThetaAngleRobotImpl::getLogger() const{
     if(sd_present){
         return std::make_shared<File>(data_file);
     }
