@@ -6,6 +6,7 @@
 #define TEENSYCODE2_0_ABSTRACTROBOT_H
 #include "utils/Position.h"
 #include "vector"
+#include "TeensyThreads.h"
 
 class AbstractRobot {
 public:
@@ -43,7 +44,7 @@ public:
     /**
      * Function called all the time to update the robot pos and control
      */
-    virtual void update()= 0;
+    virtual void update(bool disable_control=false)= 0;
 
     /**
      * Function to call at the beginning of a calibration
@@ -83,6 +84,10 @@ public:
     virtual std::shared_ptr<Print> getLogger() const = 0;
 
     virtual void applyMotor(std::vector<double> pwms) = 0;
+
+    virtual void applyMotor(std::vector<int> pwms) = 0;
+
+    virtual std::shared_ptr<Threads::Mutex> getLoggerMutex() = 0;
 
 };
 

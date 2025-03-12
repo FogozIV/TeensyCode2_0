@@ -32,6 +32,11 @@ public:
      * @return Whether the motor behavior is reversed or not
      */
     virtual bool isReversed() const = 0;
+    /**
+     * This function should allow the user to send a signed pwm if the value is bigger than the max it will be capped
+     * @param pwm a signed value for the pwm signal to put
+     */
+    virtual void setPWM(int pwm) = 0;
 };
 
 

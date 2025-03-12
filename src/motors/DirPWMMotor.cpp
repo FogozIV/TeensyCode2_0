@@ -42,3 +42,8 @@ DirPWMMotor::DirPWMMotor(uint8_t pwmPin, uint8_t dirPin, bool inversed) : pwmPin
     digitalWriteFast(dirPin, LOW);
 #endif
 }
+
+void DirPWMMotor::setPWM(int pwm) {
+    digitalWriteFast(dirPin, (inversed ? -1 : 1) * pwm > 0);
+    analogWrite(pwmPin, static_cast<int>(abs(constrain(pwm, -getMaxValue(), getMaxValue()))));
+}

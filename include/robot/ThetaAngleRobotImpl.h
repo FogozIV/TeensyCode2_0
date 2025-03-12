@@ -8,6 +8,7 @@
 #include <memory>
 #include <FS.h>
 #include <SD.h>
+#include <TeensyThreads.h>
 
 #include "utils/Position.h"
 #include "AbstractRobot.h"
@@ -28,6 +29,8 @@ class ThetaAngleRobotImpl: public AbstractRobot {
     std::shared_ptr<SpeedEstimator> distanceEstimator;
     std::shared_ptr<SpeedEstimator> angleEstimator;
     std::shared_ptr<AbstractController> controller;
+    std::shared_ptr<Print> printer;
+    std::shared_ptr<Threads::Mutex> printerMutex;
     Position pos = {0,0,0};
     Position target_pos = {0,0,0};
     double left_wheel_diam = 1;
@@ -66,7 +69,7 @@ public:
 
     const double getTranslationalPosition() const override;
 
-    void update() override;
+    void update(bool disable_control=false) override;
 
     void begin_calibration() override;
 
@@ -90,7 +93,11 @@ public:
 
     std::shared_ptr<Print> getLogger() const override;
 
+    std::shared_ptr<Threads::Mutex> getLoggerMutex() override;
+
     void applyMotor(std::vector<double> pwms) override;
+
+    void applyMotor(std::vector<int> pwms) override;
 };
 
 

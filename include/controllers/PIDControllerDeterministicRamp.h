@@ -14,7 +14,7 @@ class PIDControllerDeterministicRamp : public AbstractController{
     std::shared_ptr<PID> distancePID;
     std::shared_ptr<PID> anglePID;
     std::shared_ptr<Ramp> rampDistance;
-
+    std::chrono::time_point<std::chrono::steady_clock> initialPoint;
     double distance_target = 0.0f;
     double angle_target = 0.0f;
 

@@ -3,6 +3,7 @@
 //
 
 #include "robot/ThetaAngleRobotImpl.h"
+#include "utils/BufferFilePrint.h"
 
 #include <memory>
 #include <utility>
@@ -23,6 +24,7 @@ ThetaAngleRobotImpl::ThetaAngleRobotImpl(std::shared_ptr<AbstractEncoder> leftEn
         Entropy.Initialize();
 
         this->data_file = SD.open((std::string("data") + std::to_string(Entropy.random(0,255))).data(), FILE_WRITE_BEGIN);
+        printer = std::make_shared<BufferFilePrint>(this->data_file);
         if (File dataFile = SD.open("encoder.json", FILE_READ)) {
             deserializeJson(jsonData, dataFile);
             if (jsonData["left_wheel_diam"].is<double>()) {
@@ -48,7 +50,10 @@ ThetaAngleRobotImpl::ThetaAngleRobotImpl(std::shared_ptr<AbstractEncoder> leftEn
                 this->rightMotor = a;
             }
         }
+    }else{
+        printer = std::shared_ptr<Print>(&Serial);
     }
+    printerMutex = std::make_shared<Threads::Mutex>();
 }
 
 bool ThetaAngleRobotImpl::isMoving() const {
@@ -153,15 +158,15 @@ const double ThetaAngleRobotImpl::getTranslationalPosition() const {
 
 void ThetaAngleRobotImpl::update_controller() {
     controller->applyController(*this, target_pos);
-    if(sd_present){
-        this->data_file.printf("%f, %f\n", getTranslationalPosition(), getZAxisRotation());
-        this->data_file.flush();
-    }
+    this->getLoggerMutex()->lock();
+    this->getLogger()->printf("%f, %f\n", getTranslationalPosition(), getZAxisRotation());
+    this->getLoggerMutex()->unlock();
 }
 
-void ThetaAngleRobotImpl::update() {
+void ThetaAngleRobotImpl::update(bool disable_control) {
     update_position();
-    update_controller();
+    if(!disable_control)
+        update_controller();
 }
 
 
@@ -253,10 +258,7 @@ void ThetaAngleRobotImpl::setTargetPos(const Position &position) {
 }
 
 std::shared_ptr<Print> ThetaAngleRobotImpl::getLogger() const{
-    if(sd_present){
-        return std::make_shared<File>(data_file);
-    }
-    return std::make_shared<usb_serial_class>(Serial);
+    return printer;
 }
 
 AbstractMotor &ThetaAngleRobotImpl::getRightMotor() {
@@ -268,6 +270,15 @@ AbstractMotor &ThetaAngleRobotImpl::getLeftMotor() {
 }
 
 void ThetaAngleRobotImpl::applyMotor(std::vector<double> pwms) {
+    getLeftMotor().setPWM(pwms[0]);
+    getRightMotor().setPWM(pwms[1]);
+}
+
+std::shared_ptr<Threads::Mutex> ThetaAngleRobotImpl::getLoggerMutex() {
+    return printerMutex;
+}
+
+void ThetaAngleRobotImpl::applyMotor(std::vector<int> pwms) {
     getLeftMotor().setPWM(pwms[0]);
     getRightMotor().setPWM(pwms[1]);
 }
